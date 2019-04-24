@@ -10,47 +10,67 @@ export default class Table extends Component {
       currentSort: "name",
       isLoading: false,
       isReverse: false,
-      contextMenuisible: "collapse",
+      contextMenuisible: ["collapse", "collapse"],
       coordinates: [0, 0],
-      target: {}
+      target: {},
+      visibleHeads: new Array(6).fill(false)
     };
   }
   componentDidMount() {
     window.addEventListener("scroll", this.handleScroll);
     window.addEventListener("mouseup", this.handleContextDrop);
     window.addEventListener("click", this.handleClick);
+    window.addEventListener("blur", this.hadleBlur);
     this.loadMore();
   }
 
-  handleContextDrop = () => {
+  hadleBlur = event => {
+    if (event.target.tagName === "TD") {
+      console.log(event.target.innerHTML, " добавить запись в объект");
+      event.target.setAttribute("contentEditable", "false");
+    }
+  };
+
+  handleContextDrop = event => {
+    if(event){
+    if(event.target.tagName === "LABEL"||event.target.tagName === 'INPUT')return;}
     this.setState({
-      contextMenuisible: "collapse"
+      contextMenuisible: ["collapse", "collapse"]
     });
   };
 
   handleClick = event => {
     switch (event.target.id) {
       case "delete":
-        let filtered = this.state.heroes.slice().filter(
-          item => item.name !== this.state.target.parentNode.firstChild.innerHTML
-        );
+        let deleteIndex = this.state.heroes
+          .slice()
+          .findIndex(
+            item =>
+              item.name === this.state.target.parentNode.firstChild.innerHTML
+          );
+        let filtered = this.state.heroes.slice();
+        filtered.splice(deleteIndex, 1);
         this.setState({
           heroes: filtered
         });
         break;
       case "copy":
-      let getCopy = this.state.heroes.slice().filter(
-        item => item.name === this.state.target.parentNode.firstChild.innerHTML
-      );
-      let newHeroes= this.state.heroes.slice().concat(getCopy);
-      this.setState({
-        heroes: newHeroes
-      });
+        let getCopy = this.state.heroes
+          .slice()
+          .filter(
+            item =>
+              item.name === this.state.target.parentNode.firstChild.innerHTML
+          );
+        let newHeroes = this.state.heroes.slice().concat(getCopy);
+        this.setState({
+          heroes: newHeroes
+        });
         break;
       case "change":
-        alert("change");
+        this.state.target.setAttribute("contentEditable", "true");
+        this.state.target.focus();
         break;
-        default:
+      default:
         break;
     }
   };
@@ -110,14 +130,30 @@ export default class Table extends Component {
   };
 
   handleContext = event => {
+    console.log("поправить коорд.появления");
+    let newVisibleHeads = this.state.contextMenuisible.slice();
+    if (event.target.parentNode.parentNode.tagName === "TBODY") {
+      newVisibleHeads.splice(0, 1, "visible");
+    }
+    if (event.target.parentNode.parentNode.tagName === "THEAD") {
+      newVisibleHeads.splice(1, 1, "visible");
+    }
     event.preventDefault();
     this.setState({
       coordinates: [event.clientY, event.clientX],
-      contextMenuisible: "visible",
+      contextMenuisible: newVisibleHeads,
       target: event.target
     });
   };
-
+  handleVisibleHeads = event => {
+    let newVisibleHeads = this.state.visibleHeads.slice();
+    newVisibleHeads.splice(
+      event.target.id,
+      1,
+      !newVisibleHeads[event.target.id]
+    );
+    this.setState({ visibleHeads: newVisibleHeads });
+  };
   render() {
     if (this.state.heroes === undefined) {
       return <p>Loading...</p>;
@@ -126,49 +162,77 @@ export default class Table extends Component {
         <>
           <h1>Герои StarWars</h1>
           <table>
-            <thead>
+            <thead onContextMenu={this.handleContext}>
               <tr>
-                <th onClick={this.handleSort} id="name">
+                <th
+                  hidden={this.state.visibleHeads[0]}
+                  onClick={this.handleSort}
+                  id="name"
+                >
                   name
                 </th>
-                <th onClick={this.handleSort} id="birth_year">
+                <th
+                  hidden={this.state.visibleHeads[1]}
+                  onClick={this.handleSort}
+                  id="birth_year"
+                >
                   birth year
                 </th>
-                <th onClick={this.handleSort} id="eye_color">
+                <th
+                  hidden={this.state.visibleHeads[2]}
+                  onClick={this.handleSort}
+                  id="eye_color"
+                >
                   eye color
                 </th>
-                <th onClick={this.handleSort} id="gender">
+                <th
+                  hidden={this.state.visibleHeads[3]}
+                  onClick={this.handleSort}
+                  id="gender"
+                >
                   gender
                 </th>
-                <th onClick={this.handleSort} id="hair_color">
+                <th
+                  hidden={this.state.visibleHeads[4]}
+                  onClick={this.handleSort}
+                  id="hair_color"
+                >
                   hair color
                 </th>
-                <th onClick={this.handleSort} id="height">
+                <th
+                  hidden={this.state.visibleHeads[5]}
+                  onClick={this.handleSort}
+                  id="height"
+                >
                   height
                 </th>
-                <th onClick={this.handleSort} id="skin_color">
+                <th
+                  hidden={this.state.visibleHeads[6]}
+                  onClick={this.handleSort}
+                  id="skin_color"
+                >
                   skin color
                 </th>
               </tr>
             </thead>
-            <tbody onContextMenu={this.handleContext}>
-              {this.state.heroes.sort(this.sorting).map(item => (
-                <tr key={item.name}>
-                  <td>{item.name}</td>
-                  <td>{item.birth_year}</td>
-                  <td>{item.eye_color}</td>
-                  <td>{item.gender}</td>
-                  <td>{item.hair_color}</td>
-                  <td>{item.height}</td>
-                  <td>{item.skin_color}</td>
+            <tbody onContextMenu={this.handleContext} onBlur={this.hadleBlur}>
+              {this.state.heroes.sort(this.sorting).map((item, index) => (
+                <tr key={index}>
+                  <td hidden={this.state.visibleHeads[0]}>{item.name}</td>
+                  <td hidden={this.state.visibleHeads[1]}>{item.birth_year}</td>
+                  <td hidden={this.state.visibleHeads[2]}>{item.eye_color}</td>
+                  <td hidden={this.state.visibleHeads[3]}>{item.gender}</td>
+                  <td hidden={this.state.visibleHeads[4]}>{item.hair_color}</td>
+                  <td hidden={this.state.visibleHeads[5]}>{item.height}</td>
+                  <td hidden={this.state.visibleHeads[6]}>{item.skin_color}</td>
                 </tr>
               ))}
             </tbody>
           </table>
           <div
-            className="context-menu"
+            className="context-menu body-context"
             style={{
-              visibility: this.state.contextMenuisible,
+              visibility: this.state.contextMenuisible[0],
               top: this.state.coordinates[0],
               left: this.state.coordinates[1]
             }}
@@ -182,6 +246,78 @@ export default class Table extends Component {
             <p id="delete" className="context-menu-button">
               удалить
             </p>
+          </div>
+          <div
+            style={{
+              visibility: this.state.contextMenuisible[1],
+              top: this.state.coordinates[0],
+              left: this.state.coordinates[1]
+            }}
+            className="context-menu"
+          >
+            <label className="context-menu-button">
+              <input
+                onChange={this.handleVisibleHeads}
+                checked={!this.state.visibleHeads[0]}
+                id="0"
+                type="checkbox"
+              />
+              name
+            </label>
+            <label className="context-menu-button">
+              <input
+                onChange={this.handleVisibleHeads}
+                checked={!this.state.visibleHeads[1]}
+                id="1"
+                type="checkbox"
+              />
+              birth year
+            </label>
+            <label className="context-menu-button">
+              <input
+                onChange={this.handleVisibleHeads}
+                checked={!this.state.visibleHeads[2]}
+                id="2"
+                type="checkbox"
+              />
+              eye color
+            </label>
+            <label className="context-menu-button">
+              <input
+                onChange={this.handleVisibleHeads}
+                checked={!this.state.visibleHeads[3]}
+                id="3"
+                type="checkbox"
+              />
+              gender
+            </label>
+            <label className="context-menu-button">
+              <input
+                onChange={this.handleVisibleHeads}
+                checked={!this.state.visibleHeads[4]}
+                id="4"
+                type="checkbox"
+              />
+              hair color
+            </label>
+            <label className="context-menu-button">
+              <input
+                onChange={this.handleVisibleHeads}
+                checked={!this.state.visibleHeads[5]}
+                id="5"
+                type="checkbox"
+              />
+              height
+            </label>
+            <label className="context-menu-button">
+              <input
+                onChange={this.handleVisibleHeads}
+                checked={!this.state.visibleHeads[6]}
+                id="6"
+                type="checkbox"
+              />
+              skin color
+            </label>
           </div>
         </>
       );

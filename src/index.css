@@ -35,15 +35,15 @@ th {
   display: flex;
   position: fixed;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
 }
+.body-context{  align-items: center;
+  text-align: center;}
 .context-menu-button {
   border: 1px solid #798081;
   width: 100%;
   margin: 0;
   background-color:white;
-  width: 135px;
+  width: 115px;
 padding:10px 0px 10px 0px;
 }
 .context-menu-button:hover {
