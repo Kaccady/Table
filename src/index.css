@@ -12,3 +12,41 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+.App {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 50px 0px 100px;
+}
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+td,
+th {
+  border: 1px solid #798081;
+  height: 30px;
+  text-align: center;
+  padding: 10px;
+  cursor: pointer;
+}
+.context-menu {
+  display: flex;
+  position: fixed;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.context-menu-button {
+  border: 1px solid #798081;
+  width: 100%;
+  margin: 0;
+  background-color:white;
+  width: 135px;
+padding:10px 0px 10px 0px;
+}
+.context-menu-button:hover {
+  background-color: rgb(244, 244, 244);
+  cursor: pointer;
+}
