@@ -25,7 +25,7 @@ export default class Table extends Component {
     window.addEventListener("scroll", this.handleScroll);
     window.addEventListener("mouseup", this.handleContextDrop);
     window.addEventListener("click", this.handleClick);
-    window.addEventListener("blur", this.hadleBlur);
+    window.addEventListener("blur", this.handleBlur);
     window.addEventListener("dragstart", this.handleDragStart);
     window.addEventListener("dragenter", this.handleDragDropMove);
     window.addEventListener("dragend", this.handleDragDrop);
@@ -73,15 +73,18 @@ export default class Table extends Component {
     }
   };
 
-  hadleBlur = event => {
+  handleBlur = event => {
     if (event.target.tagName === "TD") {
-      console.log(
-        event.target.innerHTML,
-        " добавить запись в объект",
-        event.target.className
-      );
       event.target.setAttribute("contentEditable", "false");
-    }
+      let indexChangeElem = this.state.heroes
+        .slice()
+        .findIndex(
+          item =>
+            item.name === this.state.target.parentNode.firstChild.innerHTML
+        );
+     // eslint-disable-next-line 
+      this.state.heroes[indexChangeElem][event.target.className]=event.target.innerHTML;
+    } 
   };
 
   handleContextDrop = event => {
@@ -112,7 +115,7 @@ export default class Table extends Component {
       case "copy":
         let getCopy = this.state.heroes
           .slice()
-          .filter(
+          .find(
             item =>
               item.name === this.state.target.parentNode.firstChild.innerHTML
           );
@@ -185,7 +188,6 @@ export default class Table extends Component {
   };
 
   handleContext = event => {
-    console.log("поправить коорд.появления");
     let newVisibleHeads = this.state.contextMenuisible.slice();
     if (event.target.parentNode.parentNode.tagName === "TBODY") {
       newVisibleHeads.splice(0, 1, "visible");
@@ -208,6 +210,7 @@ export default class Table extends Component {
       target: event.target
     });
   };
+
   handleVisibleHeads = event => {
     let newVisibleHeads = this.state.visibleHeads.slice();
     newVisibleHeads.splice(
@@ -217,6 +220,7 @@ export default class Table extends Component {
     );
     this.setState({ visibleHeads: newVisibleHeads });
   };
+
   render() {
     if (this.state.heroes === undefined) {
       return <p>Loading...</p>;
@@ -306,7 +310,7 @@ export default class Table extends Component {
                 </th>
               </tr>
             </thead>
-            <tbody onContextMenu={this.handleContext} onBlur={this.hadleBlur}>
+            <tbody onContextMenu={this.handleContext} onBlur={this.handleBlur}>
               {this.state.heroes.sort(this.sorting).map((item, index) => (
                 <tr key={index}>
                   <td
