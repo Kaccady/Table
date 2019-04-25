@@ -15,56 +15,71 @@ export default class Table extends Component {
       target: {},
       visibleHeads: new Array(6).fill(false),
       dragNDropOrder: [0, 1, 2, 3, 4, 5, 6],
-      dragMovingStart: 0,
-      dragMovingStop: 0
+      dragMovingStart: [],
+      dragMovingStop: [],
+      isCorrectDrag: true
     };
   }
   componentDidMount() {
+    this.loadMore();
     window.addEventListener("scroll", this.handleScroll);
     window.addEventListener("mouseup", this.handleContextDrop);
     window.addEventListener("click", this.handleClick);
     window.addEventListener("blur", this.hadleBlur);
     window.addEventListener("dragstart", this.handleDragStart);
     window.addEventListener("dragenter", this.handleDragDropMove);
-    //window.addEventListener("dragend", this.handleDragDrop);
-
-    this.loadMore();
+    window.addEventListener("dragend", this.handleDragDrop);
   }
-
 
   handleDragStart = event => {
     if (event.target.tagName === "TH") {
-      this.setState({ dragMovingStart: +event.target.getAttribute("number") });
-      console.log(this.state.dragMovingStart);
+      let start = +event.target.getAttribute("number");
+      this.setState({
+        dragMovingStart: [start, +this.state.dragNDropOrder[start]]
+      });
+    } else {
+      this.setState({ isCorrectDrag: false });
     }
+  };
+
+  handleDragDropMove = event => {
+    if (event.target.tagName === "TH" && this.state.isCorrectDrag) {
+      let stop = +event.target.getAttribute("number");
+      this.setState({
+        dragMovingStop: [stop, +this.state.dragNDropOrder[stop]]
+      });
+    }
+  };
+
+  handleDragDrop = event => {
+    if (event.target.tagName === "TH" && this.state.isCorrectDrag) {
+      this.upduteTableOrders();
+    }
+    this.setState({ isCorrectDrag: true });
   };
 
   upduteTableOrders = () => {
     let newOrder = this.state.dragNDropOrder.slice();
-    let start = this.state.dragNDropOrder[this.state.dragMovingStart];
-    let stop = this.state.dragNDropOrder[this.state.dragMovingStop];
-    [newOrder[start],newOrder[stop]]=[newOrder[stop],newOrder[start]];
-    this.setState({
-      dragNDropOrder: newOrder,
-    },()=>this.setState({dragMovingStart:stop})
-    );
-  };
-
-  handleDragDropMove = event => {
-    if (event.target.tagName === "TH") {
-      this.setState(
-        { dragMovingStop: +event.target.getAttribute("number") },
-        () => {
-          console.log(this.state.dragMovingStop);
-          this.upduteTableOrders();
-        }
-      );
+    let start = this.state.dragMovingStart.slice();
+    let stop = this.state.dragMovingStop.slice();
+    if (start[0] !== stop[0]) {
+      [newOrder[start[1]], newOrder[stop[1]]] = [
+        newOrder[stop[1]],
+        newOrder[start[1]]
+      ];
+      this.setState({
+        dragNDropOrder: newOrder
+      });
     }
   };
 
   hadleBlur = event => {
     if (event.target.tagName === "TD") {
-      console.log(event.target.innerHTML, " добавить запись в объект");
+      console.log(
+        event.target.innerHTML,
+        " добавить запись в объект",
+        event.target.className
+      );
       event.target.setAttribute("contentEditable", "false");
     }
   };
@@ -179,8 +194,16 @@ export default class Table extends Component {
       newVisibleHeads.splice(1, 1, "visible");
     }
     event.preventDefault();
+    let newHeight =
+      event.clientY + 131 < document.documentElement.clientHeight
+        ? event.clientY
+        : document.documentElement.clientHeight - 133;
+    let newWidth =
+      event.clientX + 117 < document.documentElement.clientWidth
+        ? event.clientX
+        : document.documentElement.clientWidth - 119;
     this.setState({
-      coordinates: [event.clientY, event.clientX],
+      coordinates: [newHeight, newWidth],
       contextMenuisible: newVisibleHeads,
       target: event.target
     });

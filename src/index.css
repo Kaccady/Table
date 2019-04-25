@@ -30,6 +30,7 @@ th {
   text-align: center;
   padding: 10px;
   cursor: pointer;
+  background-color:white;
 }
 .context-menu {
   display: flex;
