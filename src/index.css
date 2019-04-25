@@ -25,38 +25,60 @@ table {
 }
 td,
 th {
-  border: 1px solid #798081;
+  border: 1px solid #a9abac;
   height: 30px;
   text-align: center;
   padding: 10px;
   cursor: pointer;
-  background-color:white;
+  background-color: white;
 }
 .context-menu {
   display: flex;
   position: fixed;
   flex-direction: column;
 }
-.body-context{  align-items: center;
-  text-align: center;}
+.body-context {
+  align-items: center;
+  text-align: center;
+}
 .context-menu-button {
   border: 1px solid #798081;
   width: 100%;
   margin: 0;
-  background-color:white;
+  background-color: white;
   width: 115px;
-padding:10px 0px 10px 0px;
+  padding: 10px 0px 10px 0px;
 }
 .context-menu-button:hover {
   background-color: rgb(244, 244, 244);
   cursor: pointer;
 }
 
-tr{display: flex;}
-.name{width: 160px;}
-.birth_year{width: 95.2px;}
-.eye_color{width: 114.4px}
-.gender{width:126.4px}
-.hair_color{width:117.6px}
-.height{width:86.4px}
-.skin_color{width:143.6px}
+tr {
+  display: flex;
+}
+.name {
+  width: 160px;
+}
+.birth_year {
+  width: 95.2px;
+}
+.eye_color {
+  width: 114.4px;
+}
+.gender {
+  width: 126.4px;
+}
+.hair_color {
+  width: 117.6px;
+}
+.height {
+  width: 86.4px;
+}
+.skin_color {
+  width: 143.6px;
+}
+td:hover {
+  border-color:blue;
+}
+.selected{border-color:blue}

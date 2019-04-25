@@ -17,7 +17,8 @@ export default class Table extends Component {
       dragNDropOrder: [0, 1, 2, 3, 4, 5, 6],
       dragMovingStart: [],
       dragMovingStop: [],
-      isCorrectDrag: true
+      isCorrectDrag: true,
+      targets: []
     };
   }
   componentDidMount() {
@@ -29,11 +30,18 @@ export default class Table extends Component {
     window.addEventListener("dragstart", this.handleDragStart);
     window.addEventListener("dragenter", this.handleDragDropMove);
     window.addEventListener("dragend", this.handleDragDrop);
+    window.addEventListener("keypress", this.handleSumbit);
   }
+
+  handleSumbit = event => {
+    if (event.keyCode === 13 && event.target.tagName === "TD") {
+      event.target.blur();
+    }
+  };
 
   handleDragStart = event => {
     if (event.target.tagName === "TH") {
-      let start = +event.target.getAttribute("number");
+      let start = +event.target.style.order;
       this.setState({
         dragMovingStart: [start, +this.state.dragNDropOrder[start]]
       });
@@ -44,7 +52,7 @@ export default class Table extends Component {
 
   handleDragDropMove = event => {
     if (event.target.tagName === "TH" && this.state.isCorrectDrag) {
-      let stop = +event.target.getAttribute("number");
+      let stop = +event.target.style.order;
       this.setState({
         dragMovingStop: [stop, +this.state.dragNDropOrder[stop]]
       });
@@ -73,18 +81,27 @@ export default class Table extends Component {
     }
   };
 
-  handleBlur = event => {
-    if (event.target.tagName === "TD") {
-      event.target.setAttribute("contentEditable", "false");
-      let indexChangeElem = this.state.heroes
-        .slice()
-        .findIndex(
-          item =>
-            item.name === this.state.target.parentNode.firstChild.innerHTML
-        );
-     // eslint-disable-next-line 
-      this.state.heroes[indexChangeElem][event.target.className]=event.target.innerHTML;
-    } 
+  handleBlur = () => {
+    let target = this.state.target;
+    if (target.tagName === "TD") {
+      target.setAttribute("contentEditable", "false");
+      this.upduteTablesContent(target);
+      let targets = this.state.targets.slice();
+    }
+  };
+
+  upduteTablesContent = target => {
+    let changedName = target.parentNode.getAttribute("name");
+    let indexChangeElem = this.state.heroes
+      .slice()
+      .findIndex(item => item.name === changedName);
+    let changedProperty = target.className;
+    let newValue = target.innerHTML;
+    // eslint-disable-next-line
+    this.state.heroes[indexChangeElem][changedProperty] = newValue;
+    this.setState(prevState => ({
+      heroes: prevState.heroes
+    }));
   };
 
   handleContextDrop = event => {
@@ -130,6 +147,13 @@ export default class Table extends Component {
         break;
       default:
         break;
+    }
+    if (event.ctrlKey || event.metaKey) {
+      console.log(event.target, "ctrl+mouse");
+    }
+    if (event.target.tagName === "TD") {
+      event.target.setAttribute("contentEditable", "true");
+      event.target.focus();
     }
   };
 
@@ -227,12 +251,11 @@ export default class Table extends Component {
     } else {
       return (
         <>
-          <h1>Герои StarWars</h1>
+          <h1>StarWars heroes</h1>
           <table>
             <thead onContextMenu={this.handleContext}>
               <tr>
                 <th
-                  number="0"
                   style={{ order: this.state.dragNDropOrder[0] }}
                   draggable="true"
                   hidden={this.state.visibleHeads[0]}
@@ -243,7 +266,6 @@ export default class Table extends Component {
                   name
                 </th>
                 <th
-                  number="1"
                   style={{ order: this.state.dragNDropOrder[1] }}
                   draggable="true"
                   hidden={this.state.visibleHeads[1]}
@@ -254,7 +276,6 @@ export default class Table extends Component {
                   birth year
                 </th>
                 <th
-                  number="2"
                   style={{ order: this.state.dragNDropOrder[2] }}
                   draggable="true"
                   hidden={this.state.visibleHeads[2]}
@@ -265,7 +286,6 @@ export default class Table extends Component {
                   eye color
                 </th>
                 <th
-                  number="3"
                   style={{ order: this.state.dragNDropOrder[3] }}
                   draggable="true"
                   hidden={this.state.visibleHeads[3]}
@@ -276,7 +296,6 @@ export default class Table extends Component {
                   gender
                 </th>
                 <th
-                  number="4"
                   style={{ order: this.state.dragNDropOrder[4] }}
                   draggable="true"
                   hidden={this.state.visibleHeads[4]}
@@ -287,7 +306,6 @@ export default class Table extends Component {
                   hair color
                 </th>
                 <th
-                  number="5"
                   style={{ order: this.state.dragNDropOrder[5] }}
                   draggable="true"
                   hidden={this.state.visibleHeads[5]}
@@ -298,7 +316,6 @@ export default class Table extends Component {
                   height
                 </th>
                 <th
-                  number="6"
                   style={{ order: this.state.dragNDropOrder[6] }}
                   draggable="true"
                   hidden={this.state.visibleHeads[6]}
@@ -312,7 +329,7 @@ export default class Table extends Component {
             </thead>
             <tbody onContextMenu={this.handleContext} onBlur={this.handleBlur}>
               {this.state.heroes.sort(this.sorting).map((item, index) => (
-                <tr key={index}>
+                <tr key={index} name={item.name}>
                   <td
                     style={{ order: this.state.dragNDropOrder[0] }}
                     className="name"
