@@ -139,9 +139,8 @@ export default class Table extends Component {
     let indexChangeElem = this.state.heroes
       .slice()
       .findIndex(item => item.name === changedName);
-    let changedProperty = target.className;
+    let changedProperty = target.className.replace(" selected-tab", "");
     let newValue = target.innerHTML;
-    console.log(this.state.heroes[indexChangeElem][changedProperty],newValue)
     // eslint-disable-next-line
     this.state.heroes[indexChangeElem][changedProperty] = newValue;
     this.setState(prevState => ({
@@ -212,12 +211,13 @@ export default class Table extends Component {
             target: event.target,
             targets: newTargets
           },
-          () =>
-            this.state.targets.forEach(item => {
+          () => {
+            this.state.targetsn.forEach(item => {
               if (item) {
                 item.classList.add("selected-tab");
               }
-            })
+            });
+          }
         );
       }
     }
