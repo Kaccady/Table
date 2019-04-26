@@ -38,6 +38,7 @@ export default class Table extends Component {
   handleSumbit = event => {
     if (event.keyCode === 13 && this.state.target.tagName === "TD") {
       this.state.target.blur();
+      this.setState({ targets: [] });
     }
   };
 
@@ -94,7 +95,6 @@ export default class Table extends Component {
           if (i !== length) {
             this.upduteTablesContent(item);
           }
-          this.setState({ targets: [] });
         });
       }
     }
@@ -172,19 +172,17 @@ export default class Table extends Component {
       default:
         break;
     }
-    if ((event.ctrlKey || event.metaKey) && event.target.tagName === "TD") {
+    if (event.target.tagName === "TD") {
       event.target.setAttribute("contentEditable", "true");
       event.target.focus();
-      this.setState(prevState => ({
-        targets: prevState.targets.concat(event.target),
-        target: event.target
-      }));
-      console.log(this.state.targets, "ctrl+mouse");
-    }
-    if (!(event.ctrlKey || event.metaKey) && event.target.tagName === "TD") {
-      event.target.setAttribute("contentEditable", "true");
-      event.target.focus();
-      this.setState({ target: event.target });
+      if (event.ctrlKey || event.metaKey) {
+        this.setState(prevState => ({
+          targets: prevState.targets.concat(event.target),
+          target: event.target
+        }));
+      } else {
+        this.setState({ target: event.target, targets: [] });
+      }
     }
   };
 
