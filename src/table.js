@@ -27,7 +27,8 @@ export default class Table extends Component {
       dragMovingStart: [],
       dragMovingStop: [],
       isCorrectDrag: true,
-      targets: []
+      targets: [],
+      search: ""
     };
   }
   componentDidMount() {
@@ -83,12 +84,12 @@ export default class Table extends Component {
 
   handleDragDrop = event => {
     if (event.target.tagName === "TH" && this.state.isCorrectDrag) {
-      this.upduteTableOrders();
+      this.updateTableOrders();
     }
     this.setState({ isCorrectDrag: true });
   };
 
-  upduteTableOrders = () => {
+  updateTableOrders = () => {
     let newOrder = this.state.dragNDropOrder.slice();
     let start = this.state.dragMovingStart.slice();
     let stop = this.state.dragMovingStop.slice();
@@ -107,12 +108,12 @@ export default class Table extends Component {
     let target = this.state.target;
     if (target.tagName === "TD") {
       target.setAttribute("contentEditable", "false");
-      this.upduteTablesContent(target);
+      this.updateTablesContent(target);
       if (this.state.targets) {
         let length = this.state.targets.length - 1;
-        this.state.targets.forEach((item, i) => {
+        this.state.targets.forEach((target, i) => {
           if (i !== length) {
-            this.upduteTablesContent(item);
+            this.updateTablesContent(target);
           }
         });
       }
@@ -133,13 +134,14 @@ export default class Table extends Component {
     }
   };
 
-  upduteTablesContent = target => {
+  updateTablesContent = target => {
     let changedName = target.parentNode.getAttribute("name");
     let indexChangeElem = this.state.heroes
       .slice()
       .findIndex(item => item.name === changedName);
     let changedProperty = target.className;
     let newValue = target.innerHTML;
+    console.log(this.state.heroes[indexChangeElem][changedProperty],newValue)
     // eslint-disable-next-line
     this.state.heroes[indexChangeElem][changedProperty] = newValue;
     this.setState(prevState => ({
@@ -194,7 +196,15 @@ export default class Table extends Component {
     if (event.target.tagName === "TD") {
       event.target.setAttribute("contentEditable", "true");
       event.target.focus();
-      if (!(event.ctrlKey || event.metaKey)&&event.target!==this.state.target){this.targetsCleaner()}
+      if (
+        !(event.ctrlKey || event.metaKey) &&
+        event.target !== this.state.target
+      ) {
+        this.setState({
+          target: event.target
+        });
+        this.targetsCleaner();
+      }
       if (event.ctrlKey || event.metaKey) {
         let newTargets = this.state.targets.concat(event.target);
         this.setState(
@@ -311,12 +321,19 @@ export default class Table extends Component {
   };
 
   render() {
-    if (this.state.heroes === undefined) {
+    if (this.state.heroes.length === 0) {
       return <p>Loading...</p>;
     } else {
       return (
         <>
           <h1>StarWars heroes</h1>
+          <input
+            placeholder="поиск"
+            value={this.state.search}
+            onChange={event => {
+              this.setState({ search: event.target.value });
+            }}
+          />
           <table>
             <thead onContextMenu={this.handleContext}>
               <tr>
@@ -343,20 +360,34 @@ export default class Table extends Component {
               </tr>
             </thead>
             <tbody onBlur={this.handleBlur} onContextMenu={this.handleContext}>
-              {this.state.heroes.sort(this.sorting).map((item, index) => (
-                <tr key={index} name={item.name}>
-                  {heads.map((it, idx) => (
-                    <td
-                      key={idx}
-                      style={{ order: this.state.dragNDropOrder[idx] }}
-                      className={it}
-                      hidden={this.state.visibleHeads[idx]}
-                    >
-                      {item[it]}
-                    </td>
-                  ))}
-                </tr>
-              ))}
+              {this.state.heroes
+                .filter(item => {
+                  if (this.state.search === "") {
+                    return true;
+                  }
+                  let i = Object.values(item);
+                  return (
+                    i
+                      .toString()
+                      .toLowerCase()
+                      .search(this.state.search.toLowerCase()) !== -1
+                  );
+                })
+                .sort(this.sorting)
+                .map((item, index) => (
+                  <tr key={index} name={item.name}>
+                    {heads.map((it, idx) => (
+                      <td
+                        key={idx}
+                        style={{ order: this.state.dragNDropOrder[idx] }}
+                        className={it}
+                        hidden={this.state.visibleHeads[idx]}
+                      >
+                        {item[it]}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
             </tbody>
           </table>
           <div
