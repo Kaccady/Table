@@ -1,6 +1,15 @@
 import React, { Component } from "react";
 import axios from "axios";
 
+const heads = [
+  "name",
+  "gender",
+  "birth_year",
+  "skin_color",
+  "hair_color",
+  "eye_color"
+];
+
 export default class Table extends Component {
   constructor(props) {
     super(props);
@@ -14,12 +23,11 @@ export default class Table extends Component {
       coordinates: [0, 0],
       target: {},
       visibleHeads: new Array(6).fill(false),
-      dragNDropOrder: [0, 1, 2, 3, 4, 5, 6],
+      dragNDropOrder: [0, 1, 2, 3, 4, 5],
       dragMovingStart: [],
       dragMovingStop: [],
       isCorrectDrag: true,
-      targets: [],
-      listenForTargets: false
+      targets: []
     };
   }
   componentDidMount() {
@@ -34,11 +42,22 @@ export default class Table extends Component {
     window.addEventListener("keypress", this.handleSumbit);
     window.addEventListener("input", this.handleChange);
   }
+  componentWillUnmount() {
+    window.removeEventListener("scroll", this.handleScroll);
+    window.removeEventListener("mouseup", this.handleContextDrop);
+    window.removeEventListener("click", this.handleClick);
+    window.removeEventListener("blur", this.handleBlur);
+    window.removeEventListener("dragstart", this.handleDragStart);
+    window.removeEventListener("dragenter", this.handleDragDropMove);
+    window.removeEventListener("dragend", this.handleDragDrop);
+    window.removeEventListener("keypress", this.handleSumbit);
+    window.removeEventListener("input", this.handleChange);
+  }
 
   handleSumbit = event => {
     if (event.keyCode === 13 && this.state.target.tagName === "TD") {
       this.state.target.blur();
-      this.setState({ targets: [] });
+      this.targetsCleaner();
     }
   };
 
@@ -175,15 +194,32 @@ export default class Table extends Component {
     if (event.target.tagName === "TD") {
       event.target.setAttribute("contentEditable", "true");
       event.target.focus();
+      if (!(event.ctrlKey || event.metaKey)&&event.target!==this.state.target){this.targetsCleaner()}
       if (event.ctrlKey || event.metaKey) {
-        this.setState(prevState => ({
-          targets: prevState.targets.concat(event.target),
-          target: event.target
-        }));
-      } else {
-        this.setState({ target: event.target, targets: [] });
+        let newTargets = this.state.targets.concat(event.target);
+        this.setState(
+          {
+            target: event.target,
+            targets: newTargets
+          },
+          () =>
+            this.state.targets.forEach(item => {
+              if (item) {
+                item.classList.add("selected-tab");
+              }
+            })
+        );
       }
     }
+  };
+
+  targetsCleaner = () => {
+    this.state.targets.forEach(item => {
+      if (item) {
+        item.classList.remove("selected-tab");
+      }
+    });
+    this.setState({ targets: [] });
   };
 
   handleScroll = () => {
@@ -284,151 +320,41 @@ export default class Table extends Component {
           <table>
             <thead onContextMenu={this.handleContext}>
               <tr>
-                <th
-                  onDragOver={event => {
-                    event.preventDefault();
-                  }}
-                  style={{ order: this.state.dragNDropOrder[0] }}
-                  draggable="true"
-                  hidden={this.state.visibleHeads[0]}
-                  onClick={this.handleSort}
-                  id="name"
-                  className="name"
-                >
-                  name
-                </th>
-                <th
-                  onDragOver={event => {
-                    event.preventDefault();
-                  }}
-                  style={{ order: this.state.dragNDropOrder[1] }}
-                  draggable="true"
-                  hidden={this.state.visibleHeads[1]}
-                  onClick={this.handleSort}
-                  id="birth_year"
-                  className="birth_year"
-                >
-                  birth year
-                </th>
-                <th
-                  onDragOver={event => {
-                    event.preventDefault();
-                  }}
-                  style={{ order: this.state.dragNDropOrder[2] }}
-                  draggable="true"
-                  hidden={this.state.visibleHeads[2]}
-                  onClick={this.handleSort}
-                  id="eye_color"
-                  className="eye_color"
-                >
-                  eye color
-                </th>
-                <th
-                  onDragOver={event => {
-                    event.preventDefault();
-                  }}
-                  style={{ order: this.state.dragNDropOrder[3] }}
-                  draggable="true"
-                  hidden={this.state.visibleHeads[3]}
-                  onClick={this.handleSort}
-                  id="gender"
-                  className="gender"
-                >
-                  gender
-                </th>
-                <th
-                  onDragOver={event => {
-                    event.preventDefault();
-                  }}
-                  style={{ order: this.state.dragNDropOrder[4] }}
-                  draggable="true"
-                  hidden={this.state.visibleHeads[4]}
-                  onClick={this.handleSort}
-                  id="hair_color"
-                  className="hair_color"
-                >
-                  hair color
-                </th>
-                <th
-                  onDragOver={event => {
-                    event.preventDefault();
-                  }}
-                  style={{ order: this.state.dragNDropOrder[5] }}
-                  draggable="true"
-                  hidden={this.state.visibleHeads[5]}
-                  onClick={this.handleSort}
-                  id="height"
-                  className="height"
-                >
-                  height
-                </th>
-                <th
-                  onDragOver={event => {
-                    event.preventDefault();
-                  }}
-                  style={{ order: this.state.dragNDropOrder[6] }}
-                  draggable="true"
-                  hidden={this.state.visibleHeads[6]}
-                  onClick={this.handleSort}
-                  id="skin_color"
-                  className="skin_color"
-                >
-                  skin color
-                </th>
+                {heads.map((item, index) => (
+                  <th
+                    key={item}
+                    onDragOver={event => {
+                      event.preventDefault();
+                    }}
+                    style={{ order: this.state.dragNDropOrder[index] }}
+                    draggable="true"
+                    hidden={this.state.visibleHeads[index]}
+                    onClick={this.handleSort}
+                    id={item}
+                    className={
+                      item === this.state.currentSort
+                        ? item + " selected-head"
+                        : item
+                    }
+                  >
+                    {item.replace("_", " ")}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody onBlur={this.handleBlur} onContextMenu={this.handleContext}>
               {this.state.heroes.sort(this.sorting).map((item, index) => (
                 <tr key={index} name={item.name}>
-                  <td
-                    style={{ order: this.state.dragNDropOrder[0] }}
-                    className="name"
-                    hidden={this.state.visibleHeads[0]}
-                  >
-                    {item.name}
-                  </td>
-                  <td
-                    style={{ order: this.state.dragNDropOrder[1] }}
-                    className="birth_year"
-                    hidden={this.state.visibleHeads[1]}
-                  >
-                    {item.birth_year}
-                  </td>
-                  <td
-                    style={{ order: this.state.dragNDropOrder[2] }}
-                    className="eye_color"
-                    hidden={this.state.visibleHeads[2]}
-                  >
-                    {item.eye_color}
-                  </td>
-                  <td
-                    style={{ order: this.state.dragNDropOrder[3] }}
-                    className="gender"
-                    hidden={this.state.visibleHeads[3]}
-                  >
-                    {item.gender}
-                  </td>
-                  <td
-                    style={{ order: this.state.dragNDropOrder[4] }}
-                    className="hair_color"
-                    hidden={this.state.visibleHeads[4]}
-                  >
-                    {item.hair_color}
-                  </td>
-                  <td
-                    style={{ order: this.state.dragNDropOrder[5] }}
-                    className="height"
-                    hidden={this.state.visibleHeads[5]}
-                  >
-                    {item.height}
-                  </td>
-                  <td
-                    style={{ order: this.state.dragNDropOrder[6] }}
-                    className="skin_color"
-                    hidden={this.state.visibleHeads[6]}
-                  >
-                    {item.skin_color}
-                  </td>
+                  {heads.map((it, idx) => (
+                    <td
+                      key={idx}
+                      style={{ order: this.state.dragNDropOrder[idx] }}
+                      className={it}
+                      hidden={this.state.visibleHeads[idx]}
+                    >
+                      {item[it]}
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>
@@ -459,69 +385,17 @@ export default class Table extends Component {
             }}
             className="context-menu"
           >
-            <label className="context-menu-button">
-              <input
-                onChange={this.handleVisibleHeads}
-                checked={!this.state.visibleHeads[0]}
-                id="0"
-                type="checkbox"
-              />
-              name
-            </label>
-            <label className="context-menu-button">
-              <input
-                onChange={this.handleVisibleHeads}
-                checked={!this.state.visibleHeads[1]}
-                id="1"
-                type="checkbox"
-              />
-              birth year
-            </label>
-            <label className="context-menu-button">
-              <input
-                onChange={this.handleVisibleHeads}
-                checked={!this.state.visibleHeads[2]}
-                id="2"
-                type="checkbox"
-              />
-              eye color
-            </label>
-            <label className="context-menu-button">
-              <input
-                onChange={this.handleVisibleHeads}
-                checked={!this.state.visibleHeads[3]}
-                id="3"
-                type="checkbox"
-              />
-              gender
-            </label>
-            <label className="context-menu-button">
-              <input
-                onChange={this.handleVisibleHeads}
-                checked={!this.state.visibleHeads[4]}
-                id="4"
-                type="checkbox"
-              />
-              hair color
-            </label>
-            <label className="context-menu-button">
-              <input
-                onChange={this.handleVisibleHeads}
-                checked={!this.state.visibleHeads[5]}
-                id="5"
-                type="checkbox"
-              />
-              height
-            </label>
-            <label className="context-menu-button">
-              <input
-                onChange={this.handleVisibleHeads}
-                checked={!this.state.visibleHeads[6]}
-                id="6"
-                type="checkbox"
-              />
-              skin color
-            </label>
+            {heads.map((item, index) => (
+              <label className="context-menu-button" key={index}>
+                <input
+                  onChange={this.handleVisibleHeads}
+                  checked={!this.state.visibleHeads[index]}
+                  id={index}
+                  type="checkbox"
+                />
+                {item.replace("_", " ")}
+              </label>
+            ))}
           </div>
         </>
       );

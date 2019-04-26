@@ -72,13 +72,31 @@ tr {
 .hair_color {
   width: 117.6px;
 }
-.height {
-  width: 86.4px;
-}
 .skin_color {
   width: 143.6px;
 }
-td:hover {
-  border-color:blue;
+.selected {
+  border-color: blue;
 }
-.selected{border-color:blue}
+.selected-head {
+  background-color: rgb(210, 229, 247);
+  border-color: rgb(0, 128, 248);
+}
+th {
+  background-color: rgb(235, 243, 252);
+}
+th:hover {
+  background-color: rgb(210, 229, 247);
+  border-color: rgb(0, 128, 248);
+}
+td {
+  background-color: rgb(246, 245, 255);
+}
+td:hover {
+  background-color: rgb(235, 240, 253);
+  border-color: rgb(17, 17, 221);
+}
+.selected-tab {
+  background-color: rgb(235, 240, 253);
+  border-color: rgb(17, 17, 221);
+}
