@@ -18,7 +18,8 @@ export default class Table extends Component {
       dragMovingStart: [],
       dragMovingStop: [],
       isCorrectDrag: true,
-      targets: []
+      targets: [],
+      listenForTargets: false
     };
   }
   componentDidMount() {
@@ -31,11 +32,12 @@ export default class Table extends Component {
     window.addEventListener("dragenter", this.handleDragDropMove);
     window.addEventListener("dragend", this.handleDragDrop);
     window.addEventListener("keypress", this.handleSumbit);
+    window.addEventListener("input", this.handleChange);
   }
 
   handleSumbit = event => {
-    if (event.keyCode === 13 && event.target.tagName === "TD") {
-      event.target.blur();
+    if (event.keyCode === 13 && this.state.target.tagName === "TD") {
+      this.state.target.blur();
     }
   };
 
@@ -86,7 +88,29 @@ export default class Table extends Component {
     if (target.tagName === "TD") {
       target.setAttribute("contentEditable", "false");
       this.upduteTablesContent(target);
-      let targets = this.state.targets.slice();
+      if (this.state.targets) {
+        let length = this.state.targets.length - 1;
+        this.state.targets.forEach((item, i) => {
+          if (i !== length) {
+            this.upduteTablesContent(item);
+          }
+          this.setState({ targets: [] });
+        });
+      }
+    }
+  };
+
+  handleChange = () => {
+    let target = this.state.target;
+    if (target.tagName === "TD") {
+      if (this.state.targets) {
+        let length = this.state.targets.length - 1;
+        this.state.targets.forEach((item, i) => {
+          if (i !== length) {
+            item.innerHTML = target.innerHTML;
+          }
+        });
+      }
     }
   };
 
@@ -148,12 +172,19 @@ export default class Table extends Component {
       default:
         break;
     }
-    if (event.ctrlKey || event.metaKey) {
-      console.log(event.target, "ctrl+mouse");
-    }
-    if (event.target.tagName === "TD") {
+    if ((event.ctrlKey || event.metaKey) && event.target.tagName === "TD") {
       event.target.setAttribute("contentEditable", "true");
       event.target.focus();
+      this.setState(prevState => ({
+        targets: prevState.targets.concat(event.target),
+        target: event.target
+      }));
+      console.log(this.state.targets, "ctrl+mouse");
+    }
+    if (!(event.ctrlKey || event.metaKey) && event.target.tagName === "TD") {
+      event.target.setAttribute("contentEditable", "true");
+      event.target.focus();
+      this.setState({ target: event.target });
     }
   };
 
@@ -256,6 +287,9 @@ export default class Table extends Component {
             <thead onContextMenu={this.handleContext}>
               <tr>
                 <th
+                  onDragOver={event => {
+                    event.preventDefault();
+                  }}
                   style={{ order: this.state.dragNDropOrder[0] }}
                   draggable="true"
                   hidden={this.state.visibleHeads[0]}
@@ -266,6 +300,9 @@ export default class Table extends Component {
                   name
                 </th>
                 <th
+                  onDragOver={event => {
+                    event.preventDefault();
+                  }}
                   style={{ order: this.state.dragNDropOrder[1] }}
                   draggable="true"
                   hidden={this.state.visibleHeads[1]}
@@ -276,6 +313,9 @@ export default class Table extends Component {
                   birth year
                 </th>
                 <th
+                  onDragOver={event => {
+                    event.preventDefault();
+                  }}
                   style={{ order: this.state.dragNDropOrder[2] }}
                   draggable="true"
                   hidden={this.state.visibleHeads[2]}
@@ -286,6 +326,9 @@ export default class Table extends Component {
                   eye color
                 </th>
                 <th
+                  onDragOver={event => {
+                    event.preventDefault();
+                  }}
                   style={{ order: this.state.dragNDropOrder[3] }}
                   draggable="true"
                   hidden={this.state.visibleHeads[3]}
@@ -296,6 +339,9 @@ export default class Table extends Component {
                   gender
                 </th>
                 <th
+                  onDragOver={event => {
+                    event.preventDefault();
+                  }}
                   style={{ order: this.state.dragNDropOrder[4] }}
                   draggable="true"
                   hidden={this.state.visibleHeads[4]}
@@ -306,6 +352,9 @@ export default class Table extends Component {
                   hair color
                 </th>
                 <th
+                  onDragOver={event => {
+                    event.preventDefault();
+                  }}
                   style={{ order: this.state.dragNDropOrder[5] }}
                   draggable="true"
                   hidden={this.state.visibleHeads[5]}
@@ -316,6 +365,9 @@ export default class Table extends Component {
                   height
                 </th>
                 <th
+                  onDragOver={event => {
+                    event.preventDefault();
+                  }}
                   style={{ order: this.state.dragNDropOrder[6] }}
                   draggable="true"
                   hidden={this.state.visibleHeads[6]}
@@ -327,7 +379,7 @@ export default class Table extends Component {
                 </th>
               </tr>
             </thead>
-            <tbody onContextMenu={this.handleContext} onBlur={this.handleBlur}>
+            <tbody onBlur={this.handleBlur} onContextMenu={this.handleContext}>
               {this.state.heroes.sort(this.sorting).map((item, index) => (
                 <tr key={index} name={item.name}>
                   <td
