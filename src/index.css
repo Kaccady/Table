@@ -108,8 +108,8 @@ thead {
 tr {
   display: flex;
 }
-div {
+.App {
   display: flex;
   justify-content: center;
-  min-width: 900px;
+    min-width: 900px;
 }
