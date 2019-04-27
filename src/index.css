@@ -54,9 +54,6 @@ th {
   cursor: pointer;
 }
 
-tr {
-  display: flex;
-}
 .name {
   width: 160px;
 }
@@ -100,4 +97,11 @@ td:hover {
   background-color: rgb(235, 240, 253);
   border-color: rgb(17, 17, 221);
 }
-input{margin-bottom: 20px;}
+input {
+  margin-bottom: 20px;
+}
+thead {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}

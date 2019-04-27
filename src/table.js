@@ -1,14 +1,33 @@
 import React, { Component } from "react";
 import axios from "axios";
+import { SortableContainer, SortableElement } from "react-sortable-hoc";
+import arrayMove from "array-move";
 
-const heads = [
-  "name",
-  "gender",
-  "birth_year",
-  "skin_color",
-  "hair_color",
-  "eye_color"
-];
+const Head = SortableElement(({ item, visibility, handler, sort }) => (
+  <th
+    key={item}
+    hidden={visibility}
+    onClick={handler}
+    id={item}
+    className={item === sort ? item + " selected-head" : item}
+  >
+    {item.replace("_", " ")}
+  </th>
+));
+const Heads = SortableContainer(({ heads, visibility, handler, sort }) => (
+  <tr>
+    {heads.map((item, index) => (
+      <Head
+        key={`item-${index}`}
+        index={index}
+        item={item}
+        visibility={visibility[index]}
+        handler={handler}
+        sort={sort}
+      />
+    ))}
+  </tr>
+));
 
 export default class Table extends Component {
   constructor(props) {
@@ -23,12 +42,16 @@ export default class Table extends Component {
       coordinates: [0, 0],
       target: {},
       visibleHeads: new Array(6).fill(false),
-      dragNDropOrder: [0, 1, 2, 3, 4, 5],
-      dragMovingStart: [],
-      dragMovingStop: [],
-      isCorrectDrag: true,
       targets: [],
-      search: ""
+      search: "",
+      heads: [
+        "name",
+        "gender",
+        "birth_year",
+        "skin_color",
+        "hair_color",
+        "eye_color"
+      ]
     };
   }
   componentDidMount() {
@@ -37,9 +60,6 @@ export default class Table extends Component {
     window.addEventListener("mouseup", this.handleContextDrop);
     window.addEventListener("click", this.handleClick);
     window.addEventListener("blur", this.handleBlur);
-    window.addEventListener("dragstart", this.handleDragStart);
-    window.addEventListener("dragenter", this.handleDragDropMove);
-    window.addEventListener("dragend", this.handleDragDrop);
     window.addEventListener("keypress", this.handleSumbit);
     window.addEventListener("input", this.handleChange);
   }
@@ -48,9 +68,6 @@ export default class Table extends Component {
     window.removeEventListener("mouseup", this.handleContextDrop);
     window.removeEventListener("click", this.handleClick);
     window.removeEventListener("blur", this.handleBlur);
-    window.removeEventListener("dragstart", this.handleDragStart);
-    window.removeEventListener("dragenter", this.handleDragDropMove);
-    window.removeEventListener("dragend", this.handleDragDrop);
     window.removeEventListener("keypress", this.handleSumbit);
     window.removeEventListener("input", this.handleChange);
   }
@@ -59,48 +76,6 @@ export default class Table extends Component {
     if (event.keyCode === 13 && this.state.target.tagName === "TD") {
       this.state.target.blur();
       this.targetsCleaner();
-    }
-  };
-
-  handleDragStart = event => {
-    if (event.target.tagName === "TH") {
-      let start = +event.target.style.order;
-      this.setState({
-        dragMovingStart: [start, +this.state.dragNDropOrder[start]]
-      });
-    } else {
-      this.setState({ isCorrectDrag: false });
-    }
-  };
-
-  handleDragDropMove = event => {
-    if (event.target.tagName === "TH" && this.state.isCorrectDrag) {
-      let stop = +event.target.style.order;
-      this.setState({
-        dragMovingStop: [stop, +this.state.dragNDropOrder[stop]]
-      });
-    }
-  };
-
-  handleDragDrop = event => {
-    if (event.target.tagName === "TH" && this.state.isCorrectDrag) {
-      this.updateTableOrders();
-    }
-    this.setState({ isCorrectDrag: true });
-  };
-
-  updateTableOrders = () => {
-    let newOrder = this.state.dragNDropOrder.slice();
-    let start = this.state.dragMovingStart.slice();
-    let stop = this.state.dragMovingStop.slice();
-    if (start[0] !== stop[0]) {
-      [newOrder[start[1]], newOrder[stop[1]]] = [
-        newOrder[stop[1]],
-        newOrder[start[1]]
-      ];
-      this.setState({
-        dragNDropOrder: newOrder
-      });
     }
   };
 
@@ -212,7 +187,7 @@ export default class Table extends Component {
             targets: newTargets
           },
           () => {
-            this.state.targetsn.forEach(item => {
+            this.state.targets.forEach(item => {
               if (item) {
                 item.classList.add("selected-tab");
               }
@@ -320,6 +295,12 @@ export default class Table extends Component {
     this.setState({ visibleHeads: newVisibleHeads });
   };
 
+  onSortEnd = ({ oldIndex, newIndex }) => {
+    this.setState(({ heads }) => ({
+      heads: arrayMove(heads, oldIndex, newIndex)
+    }));
+  };
+
   render() {
     if (this.state.heroes.length === 0) {
       return <p>Loading...</p>;
@@ -336,28 +317,15 @@ export default class Table extends Component {
           />
           <table>
             <thead onContextMenu={this.handleContext}>
-              <tr>
-                {heads.map((item, index) => (
-                  <th
-                    key={item}
-                    onDragOver={event => {
-                      event.preventDefault();
-                    }}
-                    style={{ order: this.state.dragNDropOrder[index] }}
-                    draggable="true"
-                    hidden={this.state.visibleHeads[index]}
-                    onClick={this.handleSort}
-                    id={item}
-                    className={
-                      item === this.state.currentSort
-                        ? item + " selected-head"
-                        : item
-                    }
-                  >
-                    {item.replace("_", " ")}
-                  </th>
-                ))}
-              </tr>
+              <Heads
+                axis="x"
+                pressThreshold={1}
+                onSortEnd={this.onSortEnd}
+                heads={this.state.heads}
+                visibility={this.state.visibleHeads}
+                handler={this.handleSort}
+                sort={this.state.currentSort}
+              />
             </thead>
             <tbody onBlur={this.handleBlur} onContextMenu={this.handleContext}>
               {this.state.heroes
@@ -376,10 +344,9 @@ export default class Table extends Component {
                 .sort(this.sorting)
                 .map((item, index) => (
                   <tr key={index} name={item.name}>
-                    {heads.map((it, idx) => (
+                    {this.state.heads.map((it, idx) => (
                       <td
                         key={idx}
-                        style={{ order: this.state.dragNDropOrder[idx] }}
                         className={it}
                         hidden={this.state.visibleHeads[idx]}
                       >
@@ -416,7 +383,7 @@ export default class Table extends Component {
             }}
             className="context-menu"
           >
-            {heads.map((item, index) => (
+            {this.state.heads.map((item, index) => (
               <label className="context-menu-button" key={index}>
                 <input
                   onChange={this.handleVisibleHeads}
