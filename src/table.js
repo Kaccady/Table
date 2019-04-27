@@ -3,26 +3,26 @@ import axios from "axios";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 import arrayMove from "array-move";
 
-const Head = SortableElement(({ item, visibility, handler, sort }) => (
-  <th
-    key={item}
-    hidden={visibility}
-    onClick={handler}
-    id={item}
-    className={item === sort ? item + " selected-head" : item}
-  >
-    {item.replace("_", " ")}
-  </th>
-));
-const Heads = SortableContainer(({ heads, visibility, handler, sort }) => (
+const Head = SortableElement(({ item, visibility, sort }) => {
+  return (
+    <th
+      hidden={visibility}
+      id={item}
+      className={item === sort ? item + " selected-head" : item}
+    >
+      {item.replace("_", " ")}
+    </th>
+  );
+});
+const Heads = SortableContainer(({ heads, visibility, sort }) => (
   <tr>
     {heads.map((item, index) => (
       <Head
+        distance={0}
         key={`item-${index}`}
         index={index}
         item={item}
         visibility={visibility[index]}
-        handler={handler}
         sort={sort}
       />
     ))}
@@ -58,6 +58,8 @@ export default class Table extends Component {
     this.loadMore();
     window.addEventListener("scroll", this.handleScroll);
     window.addEventListener("mouseup", this.handleContextDrop);
+    window.addEventListener("mousedown", this.handleSort);
+
     window.addEventListener("click", this.handleClick);
     window.addEventListener("blur", this.handleBlur);
     window.addEventListener("keypress", this.handleSumbit);
@@ -251,14 +253,16 @@ export default class Table extends Component {
   };
 
   handleSort = event => {
-    if (event.target.id === this.state.currentSort) {
-      this.setState(prevState => ({
-        isReverse: !prevState.isReverse
-      }));
+    if (event.target.tagName === "TH") {
+      if (event.target.id === this.state.currentSort) {
+        this.setState(prevState => ({
+          isReverse: !prevState.isReverse
+        }));
+      }
+      this.setState({
+        currentSort: event.target.id
+      });
     }
-    this.setState({
-      currentSort: event.target.id
-    });
   };
 
   handleContext = event => {
@@ -319,11 +323,9 @@ export default class Table extends Component {
             <thead onContextMenu={this.handleContext}>
               <Heads
                 axis="x"
-                pressThreshold={1}
                 onSortEnd={this.onSortEnd}
                 heads={this.state.heads}
                 visibility={this.state.visibleHeads}
-                handler={this.handleSort}
                 sort={this.state.currentSort}
               />
             </thead>
