@@ -105,4 +105,11 @@ thead {
   -moz-user-select: none;
   -ms-user-select: none;
 }
-tr{display: flex;}
+tr {
+  display: flex;
+}
+div {
+  display: flex;
+  justify-content: center;
+  min-width: 900px;
+}

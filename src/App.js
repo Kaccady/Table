@@ -1,6 +1,6 @@
 import React from 'react';
 import Table from './table';
-import { BrowserRouter as Router, Route,Redirect,Switch } from "react-router-dom";
+import { HashRouter as Router, Route,Redirect,Switch } from "react-router-dom";
 
 function App() {
   return (
@@ -8,6 +8,7 @@ function App() {
       <Switch>      
       <Route path='/table' component={Table}/>
       <Redirect from="/"push to="/table" />
+      <Route component={Table}/>
       </Switch>
      </Router>
     </div>
