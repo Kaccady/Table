@@ -14,6 +14,7 @@ const Head = SortableElement(({ item, visibility, sort }) => {
     </th>
   );
 });
+
 const Heads = SortableContainer(({ heads, visibility, sort }) => (
   <tr>
     {heads.map((item, index) => (
@@ -55,20 +56,22 @@ export default class Table extends Component {
       ]
     };
   }
+
   componentDidMount() {
     this.loadMore();
     window.addEventListener("scroll", this.handleScroll);
     window.addEventListener("mouseup", this.handleContextDrop);
     window.addEventListener("mousedown", this.handleSort);
-
     window.addEventListener("click", this.handleClick);
     window.addEventListener("blur", this.handleBlur);
     window.addEventListener("keypress", this.handleSumbit);
     window.addEventListener("input", this.handleChange);
   }
+  
   componentWillUnmount() {
     window.removeEventListener("scroll", this.handleScroll);
     window.removeEventListener("mouseup", this.handleContextDrop);
+    window.removeEventListener("mousedown", this.handleSort);
     window.removeEventListener("click", this.handleClick);
     window.removeEventListener("blur", this.handleBlur);
     window.removeEventListener("keypress", this.handleSumbit);
