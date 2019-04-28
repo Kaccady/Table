@@ -1,6 +1,6 @@
 import React from 'react';
 import Table from './table';
-import { HashRouter as Router, Route,Redirect,Switch } from "react-router-dom";
+import { BrowserRouter as Router, Route,Redirect,Switch } from "react-router-dom";
 
 function App() {
   return (
