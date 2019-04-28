@@ -75,51 +75,57 @@ export default class Table extends Component {
   }
 
   handleSumbit = event => {
-    if (event.keyCode === 13 && this.state.target.tagName === "TD") {
-      this.state.target.blur();
+    if (event.keyCode === 13 && this.state.target.it.tagName === "TD") {
+      this.state.target.it.blur();
       this.targetsCleaner();
     }
   };
 
   handleBlur = () => {
     let target = this.state.target;
-    if (target.tagName === "TD") {
-      target.setAttribute("contentEditable", "false");
-      this.updateTablesContent(target);
-      if (this.state.targets) {
-        let length = this.state.targets.length - 1;
-        this.state.targets.forEach((target, i) => {
-          if (i !== length) {
-            this.updateTablesContent(target);
-          }
-        });
+    if (target.it) {
+      if (target.it.tagName === "TD") {
+        target.it.setAttribute("contentEditable", "false");
+        this.updateTablesContent(target);
+        if (this.state.targets) {
+          let length = this.state.targets.length - 1;
+          this.state.targets.forEach((target, i) => {
+            if (i !== length) {
+              this.updateTablesContent(target);
+            }
+          });
+        }
       }
     }
   };
 
   handleChange = () => {
-    let target = this.state.target;
+    let target = this.state.target.it;
     if (target.tagName === "TD") {
       if (this.state.targets) {
         let length = this.state.targets.length - 1;
         this.state.targets.forEach((item, i) => {
           if (i !== length) {
-            item.innerHTML = target.innerHTML;
+            item.it.innerHTML = target.innerHTML;
           }
         });
       }
     }
   };
 
-  updateTablesContent = target => {
+  targetSaver = target => {
     let changedName = target.parentNode.getAttribute("name");
     let indexChangeElem = this.state.heroes
       .slice()
       .findIndex(item => item.name === changedName);
     let changedProperty = target.className.replace(" selected-tab", "");
-    let newValue = target.innerHTML;
-    // eslint-disable-next-line
-    this.state.heroes[indexChangeElem][changedProperty] = newValue;
+    let address = this.state.heroes[indexChangeElem];
+    return { it: target, address: address, tag: changedProperty };
+  };
+
+  updateTablesContent = target => {
+    let newValue = target.it.innerHTML;
+    target.address[target.tag] = newValue;
     this.setState(prevState => ({
       heroes: prevState.heroes
     }));
@@ -142,7 +148,7 @@ export default class Table extends Component {
           .slice()
           .findIndex(
             item =>
-              item.name === this.state.target.parentNode.firstChild.innerHTML
+              item.name === this.state.target.it.parentNode.firstChild.innerHTML
           );
         let filtered = this.state.heroes.slice();
         filtered.splice(deleteIndex, 1);
@@ -155,7 +161,7 @@ export default class Table extends Component {
           .slice()
           .find(
             item =>
-              item.name === this.state.target.parentNode.firstChild.innerHTML
+              item.name === this.state.target.it.parentNode.firstChild.innerHTML
           );
         let newHeroes = this.state.heroes.slice().concat(getCopy);
         this.setState({
@@ -163,47 +169,53 @@ export default class Table extends Component {
         });
         break;
       case "change":
-        this.state.target.setAttribute("contentEditable", "true");
-        this.state.target.focus();
+        this.state.target.it.setAttribute("contentEditable", "true");
+        this.state.target.it.focus();
         break;
       default:
         break;
     }
+
     if (event.target.tagName === "TD") {
       event.target.setAttribute("contentEditable", "true");
       event.target.focus();
       if (
         !(event.ctrlKey || event.metaKey) &&
-        event.target !== this.state.target
+        event.target !== this.state.target.it
       ) {
         this.setState({
-          target: event.target
+          target: this.targetSaver(event.target)
         });
         this.targetsCleaner();
       }
       if (event.ctrlKey || event.metaKey) {
-        let newTargets = this.state.targets.concat(event.target);
+        let newTargets = this.state.targets.concat(
+          this.targetSaver(event.target)
+        );
         this.setState(
           {
-            target: event.target,
+            target: this.targetSaver(event.target),
             targets: newTargets
           },
           () => {
             this.state.targets.forEach(item => {
               if (item) {
-                item.classList.add("selected-tab");
+                item.it.classList.add("selected-tab");
               }
             });
           }
         );
       }
+    } else {
+      this.state.target.it.blur();
+      this.targetsCleaner();
     }
   };
 
   targetsCleaner = () => {
     this.state.targets.forEach(item => {
       if (item) {
-        item.classList.remove("selected-tab");
+        item.it.classList.remove("selected-tab");
       }
     });
     this.setState({ targets: [] });
@@ -285,7 +297,7 @@ export default class Table extends Component {
     this.setState({
       coordinates: [newHeight, newWidth],
       contextMenuisible: newVisibleHeads,
-      target: event.target
+      target: this.targetSaver(event.target)
     });
   };
 
