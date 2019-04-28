@@ -206,7 +206,7 @@ export default class Table extends Component {
           }
         );
       }
-    } else {
+    } else {if(event.target.tagName==="P")return;
       this.state.target.it.blur();
       this.targetsCleaner();
     }
