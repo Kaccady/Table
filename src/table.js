@@ -87,7 +87,7 @@ export default class Table extends Component {
     if (target.it&&target.it.tagName === "TD") {
         target.it.setAttribute("contentEditable", "false");
         this.updateTablesContent(target);
-        if (this.state.targets) {
+        if (this.state.targets[0]) {
           let length = this.state.targets.length - 1;
           this.state.targets.forEach((target, i) => {
             if (i !== length) {
@@ -102,7 +102,7 @@ export default class Table extends Component {
   handleChange = () => {
     let target = this.state.target.it;
     if (target.tagName === "TD") {
-      if (this.state.targets) {
+      if (this.state.targets[0]) {
         let length = this.state.targets.length - 1;
         this.state.targets.forEach((item, i) => {
           if (i !== length) {
