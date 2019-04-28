@@ -44,6 +44,7 @@ export default class Table extends Component {
       visibleHeads: new Array(6).fill(false),
       targets: [],
       search: "",
+      isError: false,
       heads: [
         "name",
         "gender",
@@ -206,7 +207,8 @@ export default class Table extends Component {
           }
         );
       }
-    } else {if(event.target.tagName==="P")return;
+    } else {
+      if (event.target.tagName === "P" || this.state.target) return;
       this.state.target.it.blur();
       this.targetsCleaner();
     }
@@ -254,13 +256,18 @@ export default class Table extends Component {
   loadMore = () => {
     if (!this.state.isLoading && this.state.next) {
       this.setState({ isLoading: true });
-      axios.get(this.state.next).then(res => {
-        this.setState(prevState => ({
-          heroes: prevState.heroes.concat(res.data.results),
-          next: res.data.next,
-          isLoading: false
-        }));
-      });
+      axios
+        .get(this.state.next)
+        .then(res => {
+          this.setState(prevState => ({
+            heroes: prevState.heroes.concat(res.data.results),
+            next: res.data.next,
+            isLoading: false
+          }));
+        })
+        .catch(() => {
+          this.setState({ isError: true });
+        });
     }
   };
 
@@ -318,7 +325,9 @@ export default class Table extends Component {
   };
 
   render() {
-    if (this.state.heroes.length === 0) {
+    if (this.state.isError) {
+      return <p>Check internet connection</p>;
+    } else if (this.state.heroes.length === 0) {
       return <p>Loading...</p>;
     } else {
       return (
